@@ -1,2 +1,2 @@
 # Rio
-RAW and Image IO algorithms.
+RAW and raster image IO.
