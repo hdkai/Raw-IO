@@ -15,7 +15,7 @@ def edge_similarity (min_similarity: float=0.35) -> Callable[[Image.Image, Image
     Create an edge-based similarity function.
 
     Parameters:
-        min_similarity (float). Minimum edge similarity for images to be considered in the same group. Should be in range [0., 1.].
+        min_similarity (float): Minimum edge similarity for images to be considered in the same group. Should be in range [0., 1.].
 
     Returns:
         callable: Pairwise similarity function returning a boolean.
