@@ -9,7 +9,7 @@ from typing import Callable, List
 
 from .timestamp import exposure_timestamp
 
-def group_exposures (exposure_paths: List[str], similarity_fn: Callable[[Image.Image, Image.Image], bool], workers: int=8) -> List[List[str]]: # INCOMPLETE # Threading
+def group_exposures (exposure_paths: List[str], similarity_fn: Callable[[str, str], bool], workers: int=8) -> List[List[str]]:
     """
     Group a set of exposures using a similarity function.
 
@@ -27,42 +27,22 @@ def group_exposures (exposure_paths: List[str], similarity_fn: Callable[[Image.I
     # Trivial case
     if len(exposure_paths) == 1:
         return [exposure_paths]
-    
-    # # Load all exposures into memory
-    # with ThreadPoolExecutor(max_workers=workers) as executor:
-    #     # Sort by timestamp
-    #     exposures = executor.map(lambda path: Image.open(path), exposure_paths)
-    #     exposures_with_paths = zip(exposure_paths, exposures)
-    #     exposures_with_paths = sorted(exposures_with_paths, key=lambda pair: exposure_timestamp(pair[1]))
-    #     exposure_paths, exposures = list(zip(*exposures_with_paths))
-    #     # Compute pairwise similarity
-    #     pairwise_similarities = executor.map(lambda pair: similarity_fn(*pair), [(exposures[i], exposures[i+1]) for i in range(len(exposures) - 1)])
-    #     pairwise_similarities = list(pairwise_similarities) # So we can see it when debugging
-    # # Group
-    # groups = []
-    # current_group = [exposure_paths[0]]
-    # for i, similar in enumerate(pairwise_similarities):
-    #     if not similar:
-    #         groups.append(current_group)
-    #         current_group = []
-    #     current_group.append(exposure_paths[i+1])
-    # groups.append(current_group)
-
-    # Load exposures
-    exposures = [Image.open(path) for path in exposure_paths]
-    exposures_with_paths = zip(exposure_paths, exposures)
-    exposures_with_paths = sorted(exposures_with_paths, key=lambda pair: exposure_timestamp(pair[1]))
+    # Sort by timestamp # This should preserve order if no timestamps
+    paths_with_images = [(path, Image.open(path)) for path in exposure_paths]
+    paths_with_images = sorted(paths_with_images, key=lambda pair: exposure_timestamp(pair[1]))
+    exposure_paths, _ = list(zip(*paths_with_images))
+    # Compute pairwise similarities
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        path_pairs = [(exposure_paths[i], exposure_paths[i+1]) for i in range(len(exposure_paths) - 1)]
+        similarities = executor.map(lambda pair: similarity_fn(*pair), path_pairs)
+        similarities = list(similarities) # Prevent re-evaluation when debugging
     # Group
-    current_path, current_exposure = exposures_with_paths.pop(0)
     groups = []
-    current_group = [current_path]
-    while exposures_with_paths:
-        path, exposure = exposures_with_paths.pop(0)
-        if not similarity_fn(current_exposure, exposure):
+    current_group = [exposure_paths[0]]
+    for i, similar in enumerate(similarities):
+        if not similar:
             groups.append(current_group)
             current_group = []
-        current_group.append(path)
-        current_path, current_exposure = path, exposure
+        current_group.append(exposure_paths[i+1])
     groups.append(current_group)
-
     return groups

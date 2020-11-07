@@ -10,7 +10,7 @@ from torch import from_numpy, stack
 from torch.nn.functional import grid_sample
 from torchvision.transforms import ToPILImage, ToTensor
 
-from .device import get_io_device
+from ..device import get_io_device
 
 def lens_correction (*images: Image.Image) -> Image.Image:
     """

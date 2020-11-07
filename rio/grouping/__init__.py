@@ -5,7 +5,5 @@
 
 from .group import group_exposures
 
-from .ecc import ecc_similarity
-from .edge import edge_similarity
-from .feature import feature_similarity
+from .markov import markov_similarity
 from .timestamp import timestamp_similarity
