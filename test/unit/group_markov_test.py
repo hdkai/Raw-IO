@@ -71,3 +71,8 @@ def test_group_aerial ():
     ]
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 2 and all([len(group) == 3 for group in groups])
+
+def test_group_full_shoot ():
+    exposure_paths = [str(path) for path in (Path.home() / "Desktop" / "Clarksville").glob("*.jpg")]
+    groups = group_exposures(exposure_paths, markov_similarity())
+    print(len(groups))

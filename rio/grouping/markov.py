@@ -3,8 +3,9 @@
 #   Copyright (c) 2020 Homedeck, LLC.
 #
 
-from cv2 import findTransformECC, imread, MOTION_TRANSLATION, TERM_CRITERIA_COUNT, TERM_CRITERIA_EPS
-from numpy import eye, float32
+from cv2 import findTransformECC, MOTION_TRANSLATION, TERM_CRITERIA_COUNT, TERM_CRITERIA_EPS
+from numpy import asarray, eye, float32
+from PIL import Image
 from sklearn.feature_extraction.image import extract_patches_2d
 from typing import Callable
 
@@ -24,11 +25,16 @@ def markov_similarity (min_probability: float=0.8, trials: int=100, patch_size: 
     """
     def similarity_fn (path_a: str, path_b: str) -> bool:
         # Load images
-        image_a = imread(path_a, 0)
-        image_b = imread(path_b, 0)
+        image_a = Image.open(path_a)
+        image_b = Image.open(path_b)
         # Check sizes
-        if image_a.shape != image_b.shape:
+        if image_a.size != image_b.size:
             return False
+        # Load images
+        image_a.draft("L", (2560, 1440))
+        image_b.draft("L", (2560, 1440))
+        image_a = asarray(image_a)
+        image_b = asarray(image_b)
         # Extract patches
         SEED = 1
         size = int(min(image_a.shape) * patch_size)
