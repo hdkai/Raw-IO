@@ -13,7 +13,7 @@ from torch.nn.functional import grid_sample
 from torchvision.transforms import ToPILImage, ToTensor
 from typing import Tuple
 
-from .device import get_io_device
+from ..device import get_io_device
 
 def tca_correction (*images: Image.Image) -> Image.Image:
     """
