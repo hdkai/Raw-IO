@@ -12,42 +12,33 @@ from torchvision.transforms import ToPILImage, ToTensor
 
 from ..device import get_io_device
 
-def lens_correction (*images: Image.Image) -> Image.Image:
+def lens_correction (image: Image.Image) -> Image.Image:
     """
     Appply lens distortion correction on an image.
+
     This requires the images to have valid EXIF metadata tags.
 
     Parameters:
-        images (PIL.Image | list): Input image(s) with EXIF metadata.
+        images (PIL.Image): Input image.
 
     Returns:
-        PIL.Image | list: Corrected image(s).
+        PIL.Image: Corrected image.
     """
-    # Check
-    if len(images) == 0:
-        return None
     # Compute sample grid
-    grid = _compute_sample_grid(images[0])
+    grid = _compute_sample_grid(image)
     if grid is None:
-        return images if len(images) > 1 else images[0]
+        return image
     # Save EXIF
-    exifs = [image.info.get("exif") for image in images]
-    # Create exposure stack tensor
-    device = get_io_device()
-    image_tensors = [ToTensor()(image) for image in images]
-    exposure_stack = stack(image_tensors, dim=0).to(device)
-    # Create sampling grid tensor
-    grid = from_numpy(grid).unsqueeze(dim=0).to(device)
-    grid = grid.repeat(len(images), 1, 1, 1)
+    exif = image.info.get("exif")
     # Sample
-    result_stack = grid_sample(exposure_stack, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
-    # Convert back to images
-    exposures = result_stack.split(1, dim=0)
-    images = [ToPILImage()(exposure.squeeze(dim=0).cpu()) for exposure in exposures]
-    # Add EXIF and return
-    for image, exif in zip(images, exifs):
-        image.info["exif"] = exif
-    return images if len(images) > 1 else images[0]
+    device = get_io_device()
+    image_tensor = ToTensor()(image).unsqueeze(dim=0).to(device)
+    grid = from_numpy(grid).unsqueeze(dim=0).to(device)
+    result_tensor = grid_sample(image_tensor, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
+    # Convert
+    result = ToPILImage()(result_tensor.squeeze(dim=0).cpu())
+    result.info["exif"] = exif
+    return result
 
 def _compute_sample_grid (image: Image.Image) -> ndarray:
     """

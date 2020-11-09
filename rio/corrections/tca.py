@@ -15,7 +15,7 @@ from typing import Tuple
 
 from ..device import get_io_device
 
-def tca_correction (image: Image.Image, order: int=2) -> Image.Image: # Doesn't support batching because exposures might have shifts
+def tca_correction (image: Image.Image, order: int=2) -> Image.Image:
     """
     Appply transverse chromatic aberration correction on an image.
 
@@ -37,6 +37,7 @@ def tca_correction (image: Image.Image, order: int=2) -> Image.Image: # Doesn't 
     device = get_io_device()
     image_tensor = ToTensor()(image).unsqueeze(dim=0).to(device)
     result_tensor = _tca_forward(image_tensor, coeffs)
+    # Convert
     result = ToPILImage()(result_tensor.squeeze(dim=0).cpu())
     result.info["exif"] = exif
     return result
