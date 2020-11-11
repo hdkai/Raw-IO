@@ -86,6 +86,6 @@ def test_group_cascade_aerial (similarity_fn):
 
 def test_group_cascade_full_shoot (similarity_fn):
     #exposure_paths = [str(path) for path in (Path.home() / "Desktop" / "Margaret" / "brackets").glob("*.jpg")]
-    exposure_paths = [str(path) for path in (Path.home() / "Desktop" / "Lukas").glob("*.jpg")]
+    exposure_paths = [str(path) for path in (Path.home() / "Downloads").glob("*.jpg")]
     groups = group_exposures(exposure_paths, similarity_fn)
     print(len(groups))
