@@ -33,6 +33,9 @@ def tca_correction (image: Image.Image, order: int=2) -> Image.Image:
     roi = _compute_roi(image_array, region_count=8, corner_threshold=0.05)
     patches, centers = _extract_patches(image_array, roi, size=0.05)
     coeffs = _compute_coefficients(patches, centers, image.size, order=order)
+    # Check
+    if coeffs is None:
+        return image
     # Correct
     device = get_io_device()
     image_tensor = ToTensor()(image).unsqueeze(dim=0).to(device)
@@ -120,6 +123,9 @@ def _compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, orde
     Returns:
         ndarray: Red and blue channel coefficients with shape (2,P) where P is the polynomial order.
     """
+    # Check
+    if patches.shape[0] < 4:
+        return None
     # Constants
     IDENTITY = eye(2, 3, dtype=float32)
     CRITERIA = (TERM_CRITERIA_EPS | TERM_CRITERIA_COUNT, 50, 1e-4)
