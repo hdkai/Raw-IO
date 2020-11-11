@@ -23,7 +23,7 @@ def align_exposures (exposures: List[Image.Image]) -> List[Image.Image]:
         return None
     # Check
     if len(exposures) == 1:
-        return exposures[0]
+        return exposures
     # Convert
     exifs = [exposure.info.get("exif") for exposure in exposures]
     exposure_arrays = [asarray(exposure) for exposure in exposures]
