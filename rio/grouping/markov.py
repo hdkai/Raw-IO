@@ -21,7 +21,7 @@ def markov_similarity (min_probability: float=0.8, trials: int=100, patch_size: 
         patch_size (float): Relative patch size for ECC trials, in range [0., 1.].
 
     Returns:
-        callable: Pairwise similarity function returning a boolean.
+        callable: Pairwise image similarity function returning a boolean.
     """
     def similarity_fn (path_a: str, path_b: str) -> bool:
         # Load images

@@ -19,7 +19,7 @@ def exposure_fusion (exposures: List[Image.Image]) -> Image.Image:
         PIL.Image: Blended image.
     """
     # Check
-    if not exposures == 0:
+    if not exposures:
         return None
     # Check
     if len(exposures) == 1:

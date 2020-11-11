@@ -12,7 +12,7 @@ from pytest import fixture, mark
 
 from rio.grouping import group_exposures, markov_similarity
 
-def test_group_ambient_a (): # fails, on brightest exposure
+def test_group_markov_ambient_a (): # fails, on brightest exposure
     exposure_paths = [
         "test/media/group/6.jpg",
         "test/media/group/7.jpg",
@@ -23,7 +23,7 @@ def test_group_ambient_a (): # fails, on brightest exposure
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 1 and len(groups[0]) == 5
 
-def test_group_ambient_b ():
+def test_group_markov_ambient_b ():
     exposure_paths = [
         "test/media/group/14.jpg",
         "test/media/group/15.jpg",
@@ -32,7 +32,7 @@ def test_group_ambient_b ():
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 1 and len(groups[0]) == 3
 
-def test_group_flash_a ():
+def test_group_markov_flash_a ():
     exposure_paths = [
         "test/media/group/1.jpg",
         "test/media/group/2.jpg",
@@ -43,7 +43,7 @@ def test_group_flash_a ():
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 1 and len(groups[0]) == 5
 
-def test_group_flash_b ():
+def test_group_markov_flash_b ():
     exposure_paths = [
         "test/media/group/17.jpg",
         "test/media/group/18.jpg",
@@ -51,7 +51,7 @@ def test_group_flash_b ():
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 1 and len(groups[0]) == 2
 
-def test_group_flash_c (): # fails, between dark and flash exposures
+def test_group_markov_flash_c (): # fails, between dark and flash exposures
     exposure_paths = [
         "test/media/group/11.jpg",
         "test/media/group/12.jpg",
@@ -60,7 +60,7 @@ def test_group_flash_c (): # fails, between dark and flash exposures
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 1 and len(groups[0]) == 3
 
-def test_group_aerial ():
+def test_group_markov_aerial ():
     exposure_paths = [
         "test/media/group/19.jpg",
         "test/media/group/20.jpg",
@@ -72,7 +72,7 @@ def test_group_aerial ():
     groups = group_exposures(exposure_paths, markov_similarity())
     assert len(groups) == 2 and all([len(group) == 3 for group in groups])
 
-def test_group_full_shoot ():
+def test_group_markov_full_shoot ():
     exposure_paths = [str(path) for path in (Path.home() / "Desktop" / "Clarksville").glob("*.jpg")]
     groups = group_exposures(exposure_paths, markov_similarity())
     print(len(groups))
