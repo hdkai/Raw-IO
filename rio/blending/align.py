@@ -8,7 +8,7 @@ from numpy import asarray
 from PIL import Image
 from typing import List
 
-def align_exposures_mtb (exposures: List[Image.Image]) -> List[Image.Image]:
+def align_exposures (exposures: List[Image.Image]) -> List[Image.Image]:
     """
     Align exposures using Media Threshold Bitmap alignment.
 
@@ -34,15 +34,3 @@ def align_exposures_mtb (exposures: List[Image.Image]) -> List[Image.Image]:
     for exposure, exif in zip(exposures, exifs):
         exposure.info["exif"] = exif
     return exposures
-
-def align_exposures_ecc (exposures: List[Image.Image]) -> List[Image.Image]: # INCOMPLETE # Use affine model
-    """
-    Align exposures using Evangelidis & Psarakis.
-
-    Parameters:
-        exposures (list): List of PIL.Image exposures.
-
-    Returns:
-        list: List of aligned PIL.Image exposures.
-    """
-    pass
