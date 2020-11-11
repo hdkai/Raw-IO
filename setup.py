@@ -29,6 +29,7 @@ setup(
     install_requires=[
         "exifread",
         "lensfunpy",
+        "imagehash",
         "imageio",
         "opencv-python",
         "piexif",

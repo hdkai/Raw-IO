@@ -15,7 +15,7 @@ def timestamp_similarity (max_delta_time: float=6.) -> Callable[[str, str], bool
         max_delta_time (float): Maximum exposure time difference for images to be considered similar, in seconds.
 
     Returns:
-        callable: Pairwise similarity function returning a boolean.
+        callable: Pairwise image similarity function returning a boolean.
     """
     def similarity_fn (path_a: str, path_b: str) -> bool:
         # Load images
