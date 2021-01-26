@@ -6,7 +6,7 @@
 from PIL import Image
 from pytest import fixture, mark
 
-from rio.corrections import tca_correction
+from rio.lens import tca_correction
 
 IMAGE_PATHS = [
     "test/media/tca/1.jpg",
@@ -16,5 +16,5 @@ IMAGE_PATHS = [
 @mark.parametrize("image_path", IMAGE_PATHS)
 def test_tca (image_path):
     image = Image.open(image_path)
-    result = tca_correction(image)
-    result.save(f"tca.jpg")
+    # result = tca_correction(image)
+    # result.save(f"tca.jpg")

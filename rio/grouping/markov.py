@@ -1,6 +1,6 @@
 # 
 #   Rio
-#   Copyright (c) 2020 Homedeck, LLC.
+#   Copyright (c) 2021 Homedeck, LLC.
 #
 
 from cv2 import findTransformECC, MOTION_TRANSLATION, TERM_CRITERIA_COUNT, TERM_CRITERIA_EPS
@@ -12,8 +12,9 @@ from typing import Callable
 def markov_similarity (min_probability: float=0.8, trials: int=100, patch_size: float=0.1) -> Callable[[str, str], bool]:
     """
     Create a similarity function which estimates a binomial distribution on a Markov random field defined over the image.
-    
-    We use Evangelidis & Psarakis with Monte Carlo simulation to estimate the binomial distribution.
+
+    In simple terms, it checks for patch correspondences :/
+    We use Evangelidis & Psarakis, 2008 with Monte Carlo simulation to estimate the binomial distribution.
 
     Parameters:
         min_probability (float): Minimum probability for images to be considered similar, in range [0., 1.].

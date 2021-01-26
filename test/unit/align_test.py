@@ -4,7 +4,7 @@
 #
 
 from PIL import Image
-from rio.blending import align_exposures
+from rio.align import align_exposures
 
 def test_align ():
     exposure_paths = [
