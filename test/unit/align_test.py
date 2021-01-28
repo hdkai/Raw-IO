@@ -1,10 +1,10 @@
 # 
 #   Rio
-#   Copyright (c) 2020 Homedeck, LLC.
+#   Copyright (c) 2021 Homedeck, LLC.
 #
 
 from PIL import Image
-from rio.blending import align_exposures
+from rio.align import align_exposures
 
 def test_align ():
     exposure_paths = [

@@ -1,6 +1,6 @@
 # 
 #   Rio
-#   Copyright (c) 2020 Homedeck, LLC.
+#   Copyright (c) 2021 Homedeck, LLC.
 #
 
 from setuptools import find_packages, setup
@@ -20,8 +20,8 @@ setup(
     name="rio",
     version=version,
     author="Homedeck, LLC",
-    author_email="info@homedeck.io",
-    description="RAW IO.",
+    author_email="hi@hdk.ai",
+    description="RAW and raster image IO.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="Apache License 2.0",
@@ -37,14 +37,13 @@ setup(
         "python-dateutil",
         "rawpy",
         "scikit-learn",
+        "scipy",
         "torch",
         "torchvision"
     ],
     url="https://github.com/hdkai/Rio",
-    packages=find_packages(exclude=["examples", "playground", "test"]),
-    package_data={
-        "rio.raw": ["data/*.tif"],
-    },
+    packages=find_packages(include=["rio", "rio.*"]),
+    package_data={ "rio.raw": ["data/*.tif"] },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",

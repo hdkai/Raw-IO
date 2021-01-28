@@ -5,10 +5,8 @@ numpy
 opencv-python
 pillow
 rawpy
-scikit-image
 scikit-learn
-tableprint
+scipy
 torch
 torchvision
 torchsummary
-tqdm

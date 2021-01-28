@@ -1,6 +1,6 @@
 # 
 #   Rio
-#   Copyright (c) 2020 Homedeck, LLC.
+#   Copyright (c) 2021 Homedeck, LLC.
 #
 
 from numpy import allclose, array
@@ -12,7 +12,6 @@ from rawpy.enhance import find_bad_pixels, repair_bad_pixels
 from torch import cat, stack
 from torchvision.transforms import ToTensor, ToPILImage
 
-from ..device import get_io_device
 from .lut import color_sample_1d, lutread
 from .metadata import exifread, exifwrite
 
@@ -57,9 +56,8 @@ def rawread (*image_paths: str) -> Image.Image:
             metadata = exifread(image_path)
             metadatas.append(metadata)
     # Tensorize
-    device = get_io_device()
     exposures = [ToTensor()(exposure) for exposure in exposures]
-    exposure_stack = stack(exposures, dim=0).to(device)
+    exposure_stack = stack(exposures, dim=0)
     # Chromaticity noise reduction # CHECK # Range [-1., 1.]
     # yuv = rgb_to_yuv(exposure_stack)
     # y, u, v = yuv.split(1, dim=1)
