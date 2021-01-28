@@ -11,15 +11,15 @@ from sklearn.linear_model import RANSACRegressor
 
 from .constrain import constrain_crop_transform
 
-def align_level (image: Image.Image, max_theta: float=4., max_trials: int=2000, constrain_crop: bool=True) -> Image.Image:
+def align_level (image: Image.Image, constrain_crop: bool=True, max_theta: float=4., max_trials: int=2000) -> Image.Image:
     """
     Level an image.
 
     Parameters:
         image (PIL.Image): Input image.
-        max_theta (float): Maximum angle that can be corrected.
-        max_trials (int): Maximum trials for fitting geometry model.
         constrain_crop (bool): Apply a constrain crop to remove borders.
+        max_theta (float): Maximum angle that can be corrected in degrees.
+        max_trials (int): Maximum trials for fitting geometry model.
 
     Returns:
         PIL.Image: Result image.

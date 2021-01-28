@@ -5,13 +5,14 @@
 
 from cv2 import getPerspectiveTransform, getRotationMatrix2D, transform, warpPerspective
 from lsd import line_segment_detector
-from numpy import abs, array, asarray, arctan2, float32, pi, rad2deg, zeros_like
+from numpy import abs, array, asarray, arctan2, eye, float32, ndarray, pi, rad2deg, zeros_like
+from numpy.linalg import det, inv, qr
 from PIL import Image
 from sklearn.linear_model import RANSACRegressor
 
 from .constrain import constrain_crop_transform
 
-def align_verticals (image: Image.Image, max_trials: int=2000, constrain_crop: bool=True) -> Image.Image: # INCOMPLETE # Threshold
+def align_verticals (image: Image.Image, constrain_crop: bool=True, max_scale: float=0.2, max_trials: int=2000) -> Image.Image:
     """
     Straighten verticals in an image.
 
@@ -19,8 +20,9 @@ def align_verticals (image: Image.Image, max_trials: int=2000, constrain_crop: b
 
     Parameters:
         image (PIL.Image): Input image.
-        max_trials (int): Maximum trials for fitting geometry model.
         constrain_crop (bool): Apply a constrain crop to remove borders.
+        max_scale (float): Maximum alignment scale factor that can be corrected, in range (0., 1.].
+        max_trials (int): Maximum trials for fitting geometry model.
 
     Returns:
         PIL.Image: Result image.
@@ -76,11 +78,42 @@ def align_verticals (image: Image.Image, max_trials: int=2000, constrain_crop: b
     src_rect = array([ left_anchor[:2], left_anchor[2:], right_anchor[:2], right_anchor[2:] ], dtype=float32)
     dst_rect = array([ upright_left[0], upright_left[1], upright_right[0], upright_right[1] ], dtype=float32)
     H = getPerspectiveTransform(src_rect, dst_rect)
-    # Warp and constrain crop
+    # Check area
     T = constrain_crop_transform(H, image.width, image.height)
+    if 1 - 1. / det(T) > max_scale:
+        return image
+    # Warp and constrain crop
     H = T @ H if constrain_crop else H
     result = warpPerspective(image_arr, H, image.size)
     # Return
     result = Image.fromarray(result)
     result.info["exif"] = image.info.get("exif")
+    return result
+
+def decompose_projection (H: ndarray) -> ndarray:
+    """
+    Decompose a projective transformation into its scale, rotation angle, translation.
+
+    https://www.cs.rpi.edu/~stewart/math_techniques/lec11_transformations.pdf
+
+    Parameters:
+        H (ndarray): Projective transformation with shape (3,3).
+
+    Returns:
+        ndarray: Array with scale, rotation, and translation with shape (4,).
+    """
+    # Projection
+    H_P = eye(3)
+    H_P[2] = H[2]
+    # Translation
+    H_SA = H @ inv(H_P)
+    translation = H_SA[:2,2:].squeeze()
+    # Affinity
+    H_Af = H_SA[:2,:2]
+    Q, R = qr(H_Af)
+    # Scale and angle
+    scale = 1. / det(Q) / det(R)
+    theta = arctan2(Q[1,0], Q[0,0])
+    # Return
+    result = array([ scale, theta, translation[0], translation[1] ])
     return result
