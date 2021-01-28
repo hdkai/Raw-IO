@@ -4,52 +4,91 @@
 #
 
 from cv2 import cornerHarris, findTransformECC, MOTION_TRANSLATION, TERM_CRITERIA_COUNT, TERM_CRITERIA_EPS
-from numpy import array, argpartition, asarray, column_stack, concatenate, eye, float32, ndarray, ones, split, stack as stack_array, unravel_index
+from numpy import argpartition, array, asarray, eye, column_stack, concatenate, float32, ndarray, ones, split, stack as stack_array, unravel_index
 from numpy.linalg import norm
 from PIL import Image
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from torch import cat, linspace, meshgrid, stack, Tensor
 from torch.nn.functional import grid_sample
-from torchvision.transforms import ToPILImage, ToTensor
 from typing import Tuple
 
-def tca_correction (image: Image.Image, order: int=2) -> Image.Image: # INCOMPLETE
+def tca_model (image: Image.Image, order: int=2) -> ndarray:
     """
-    Appply transverse chromatic aberration correction on an image.
+    Compute a lens model which corrects transverse chromatic aberration.
 
     Parameters:
-        images (PIL.Image): Input image.
-        order (int): Polynomial order of lens correction model.
-    
+        image (PIL.Image): Input image.
+        order (int): Polynomial order of lens model. Quadratic or cubic model is ideal.
+
     Returns:
-        PIL.Image: Corrected image.
+        ndarray: Red-blue channel lens correction model with shape (2,P) where P is the polynomial order.
     """
-    # Save EXIF
-    exif = image.info.get("exif")
-    # Compute coefficients
-    image_array = asarray(image)
-    roi = _compute_roi(image_array, region_count=8, corner_threshold=0.05)
-    patches, centers = _extract_patches(image_array, roi, size=0.05)
-    coeffs = _compute_coefficients(patches, centers, image.size, order=order)
-    # Check
-    if coeffs is None:
-        return image
-    # Correct
-    device = get_io_device()
-    image_tensor = ToTensor()(image).unsqueeze(dim=0).to(device)
-    result_tensor = _tca_forward(image_tensor, coeffs)
-    # Convert
-    result = ToPILImage()(result_tensor.squeeze(dim=0).cpu())
-    result.info["exif"] = exif
+    # Find ROI centers
+    image_arr = asarray(image)
+    roi = compute_roi(image_arr, region_count=8, corner_threshold=0.05)
+    # Extract patches
+    patch_size = int(min(image.width, image.height) * 0.05)
+    patches, centers = extract_patches(image_arr, roi, size=patch_size)
+    model = compute_coefficients(patches, centers, image.size, order=order)
+    return model
+
+def tca_grid (model: ndarray, width: int, height: int) -> Tensor:
+    """
+    Compute a sample grid from a lens model.
+
+    Parameters:
+        model (ndarray): TCA lens model with shape (2,P).
+        width (int): Image width. Note that this must be the same value used to create the TCA model.
+        height (int): Image height. Note that this must be the same value used to create the TCA model.
+
+    Returns:
+        Tensor: Sample grid with shape (1,2,H,W,2).
+    """
+    # Construct sample grid
+    hg, wg = meshgrid(linspace(-1., 1., height), linspace(-1., 1., width))
+    hg = hg.repeat(1, 1, 1).unsqueeze(dim=3)
+    wg = wg.repeat(1, 1, 1).unsqueeze(dim=3)
+    sample_field = cat([wg, hg], dim=3)
+    r_dst = sample_field.norm(dim=3, keepdim=True)
+    # Compute distortions
+    red_distortion = stack([coeff * r_dst.pow(i) for i, coeff in enumerate(model[0])], dim=0).sum(dim=0)
+    blue_distortion = stack([coeff * r_dst.pow(i) for i, coeff in enumerate(model[1])], dim=0).sum(dim=0)
+    # Compute sample grids
+    red_grid = sample_field * red_distortion
+    blue_grid = sample_field * blue_distortion
+    # Stack
+    grid = stack([red_grid, blue_grid], dim=1)
+    return grid
+
+def tca_correction (input: Tensor, grid: Tensor) -> Tensor:
+    """
+    Appply transverse chromatic aberration correction to an image.
+
+    Parameters:
+        input (Tensor): Input image with shape (N,C,H,W).
+        grid (Tensor): Sample grid with shape (N,2,H,W,2) in range [-1., 1.].
+
+    Returns:
+        Tensor: Corrected image with shape (N,C,H,W).
+    """
+    # Split grid
+    grid = grid.to(input.device)
+    red_grid, blue_grid = grid.unbind(dim=1)
+    # Sample
+    red, green, blue = input.split(1, dim=1)
+    red_shifted = grid_sample(red, red_grid, mode="bilinear", padding_mode="border", align_corners=False)
+    blue_shifted = grid_sample(blue, blue_grid, mode="bilinear", padding_mode="border", align_corners=False)
+    # Combine
+    result = cat([red_shifted, green, blue_shifted], dim=1)
     return result
 
-def _compute_roi (input: ndarray, region_count: int=8, corner_threshold: float=0.05) -> ndarray:
+def compute_roi (input: ndarray, region_count: int=8, corner_threshold: float=0.05) -> ndarray:
     """
-    Compute chromatic aberration regions of interest.
+    Compute regions of interest with chromatic aberration.
 
     Parameters:
         image (ndarray): Input image with shape (H,W,3).
-        region_count (int): Number of independent regions on each axis to evaluate.
+        region_count (int): Number of independent regions R on each axis to evaluate.
         corner_threshold (float): Minimum cornerness for pixel to be considered ROI, in range [0., 1.].
 
     Returns:
@@ -82,7 +121,7 @@ def _compute_roi (input: ndarray, region_count: int=8, corner_threshold: float=0
     roi = stack_array(roi)
     return roi
 
-def _extract_patches (input: ndarray, centers: ndarray, size: float=0.05) -> Tuple[ndarray, ndarray]:
+def extract_patches (input: ndarray, centers: ndarray, size: int=0.05) -> Tuple[ndarray, ndarray]:
     """
     Extract image patches centered around a set of coordinates.
     
@@ -96,16 +135,14 @@ def _extract_patches (input: ndarray, centers: ndarray, size: float=0.05) -> Tup
     Returns:
         tuple: Patch stack with shape (M,S,S,3) and patch centers with shape (M,2).
     """
-    height, width, _ = input.shape
-    size = int(min(width, height) * size)
-    negatives = centers - size // 2
-    patches = [input[y_min:y_max, x_min:x_max] for x_min, y_min, x_max, y_max in concatenate([negatives, negatives + size], axis=1)]
+    min_points = centers - size // 2
+    patches = [input[y_min:y_max, x_min:x_max] for x_min, y_min, x_max, y_max in concatenate([min_points, min_points + size], axis=1)]
     patches = [(patch, center) for patch, center in zip(patches, centers) if patch.shape[0] == patch.shape[1] == size]
     patches, centers = zip(*patches)
     patches, centers = stack_array(patches), stack_array(centers)
     return patches, centers
 
-def _compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, order: int=3) -> ndarray:
+def compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, order: int=3) -> ndarray:
     """
     Compute per-patch alignment displacements for N patches.
 
@@ -115,7 +152,7 @@ def _compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, orde
     Parameters:
         patches (ndarray): Patch stack with shape (N,S,S,3).
         centers (ndarray): Patch center (x,y) coordinates with shape (N,2).
-        size (tuple): Image size (width,height).
+        size (tuple): Image size (W,H).
         order (int): Polynomial order of lens correction model.
 
     Returns:
@@ -139,7 +176,7 @@ def _compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, orde
             displacements.append(displacement)
         except:
             mask[i] = False
-    # Return
+    # Get successful displacements
     displacements = stack_array(displacements)
     centers = centers[mask]
     # Compute radial field
@@ -155,35 +192,3 @@ def _compute_coefficients (patches: ndarray, centers: ndarray, size: tuple, orde
     regressor_blue.fit(X, displaced_radii_blue)
     coefficients = stack_array([regressor_red.estimator_.coef_, regressor_blue.estimator_.coef_], axis=0)
     return coefficients
-
-def _tca_forward (input: Tensor, coeffs: ndarray) -> Tensor:
-    """
-    Apply the cubic TCA correction forward model.
-
-    Parameters:
-        input (Tensor): Image stack with shape (N,3,H,W).
-        coeffs (ndarray): Red and blue channel polynomial correction coefficients with shape (2,P).
-
-    Returns:
-        Tensor: Corrected image stack with shape (N,3,H,W).
-    """
-    # Construct sample grid
-    batch, _, height, width = input.shape
-    hg, wg = meshgrid(linspace(-1., 1., height), linspace(-1., 1., width))
-    hg = hg.repeat(batch, 1, 1).unsqueeze(dim=3).to(input.device)
-    wg = wg.repeat(batch, 1, 1).unsqueeze(dim=3).to(input.device)
-    sample_field = cat([wg, hg], dim=3)
-    r_dst = sample_field.norm(dim=3, keepdim=True)
-    # Compute distortions
-    red_distortion = stack([coeff * r_dst.pow(i) for i, coeff in enumerate(coeffs[0])], dim=0).sum(dim=0)
-    blue_distortion = stack([coeff * r_dst.pow(i) for i, coeff in enumerate(coeffs[1])], dim=0).sum(dim=0)
-    # Compute sample grids
-    red_grid = sample_field * red_distortion
-    blue_grid = sample_field * blue_distortion
-    # Sample
-    red, green, blue = input.split(1, dim=1)
-    red_shifted = grid_sample(red, red_grid, mode="bilinear", padding_mode="border", align_corners=False)
-    blue_shifted = grid_sample(blue, blue_grid, mode="bilinear", padding_mode="border", align_corners=False)
-    # Combine
-    result = cat([red_shifted, green, blue_shifted], dim=1)
-    return result

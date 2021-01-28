@@ -8,22 +8,7 @@ from PIL import Image
 from torch import from_numpy, Tensor
 from torch.nn.functional import grid_sample
 
-def lens_correction (input: Tensor, grid: Tensor) -> Tensor:
-    """
-    Appply lens distortion correction on an image.
-
-    Parameters:
-        input (Tensor): Input image with shape (N,C,H,W) in range [-1., 1.].
-        grid (Tensor): Sample grid with shape (N,H,W,2) in range [-1., 1.].
-
-    Returns:
-        Tensor: Corrected image.
-    """
-    grid = grid.to(input.device)
-    result = grid_sample(input, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
-    return result
-
-def compute_lens_grid (metadata: dict, width: int, height: int) -> Tensor:
+def lens_grid (metadata: dict, width: int, height: int) -> Tensor:
     """
     Compute lens correction sample grid.
 
@@ -73,3 +58,18 @@ def compute_lens_grid (metadata: dict, width: int, height: int) -> Tensor:
     sample_grid[:,:,1] = 2. * sample_grid[:,:,1] / height - 1.
     sample_grid = from_numpy(sample_grid).unsqueeze(dim=0)      # (1,H,W,2)
     return sample_grid
+
+def lens_correction (input: Tensor, grid: Tensor) -> Tensor:
+    """
+    Appply lens distortion correction to an image.
+
+    Parameters:
+        input (Tensor): Input image with shape (N,C,H,W).
+        grid (Tensor): Sample grid with shape (N,H,W,2) in range [-1., 1.].
+
+    Returns:
+        Tensor: Corrected image with shape (N,C,H,W).
+    """
+    grid = grid.to(input.device)
+    result = grid_sample(input, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
+    return result
