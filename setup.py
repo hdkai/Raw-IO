@@ -31,7 +31,7 @@ setup(
         "lensfunpy",
         "imagehash",
         "imageio",
-        "opencv-python",
+        "opencv-python-headless",
         "piexif",
         "pillow",
         "python-dateutil",
