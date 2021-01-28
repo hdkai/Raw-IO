@@ -2,7 +2,7 @@ imageio
 lensfunpy
 matplotlib
 numpy
-opencv-python
+opencv-python-headless
 pillow
 rawpy
 scikit-learn
