@@ -10,3 +10,4 @@ scipy
 torch
 torchvision
 torchsummary
+git+https://github.com/hdkai/LSD
