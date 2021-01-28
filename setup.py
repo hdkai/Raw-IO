@@ -37,6 +37,7 @@ setup(
         "python-dateutil",
         "rawpy",
         "scikit-learn",
+        "scipy",
         "torch",
         "torchvision"
     ],

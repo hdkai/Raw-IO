@@ -23,5 +23,5 @@ IMAGE_PATHS = [
 @mark.parametrize("image_path", IMAGE_PATHS)
 def test_level_image (image_path):
     image = Image.open(image_path)
-    result = align_level(image)
+    result = align_level(image, constrain_crop=True)
     result.save(f"level.jpg")

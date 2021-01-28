@@ -24,5 +24,5 @@ IMAGE_PATHS = [
 def test_straighten_image (image_path):
     image = Image.open(image_path)
     result = align_level(image)
-    result = align_verticals(result)
+    result = align_verticals(result, constrain_crop=False)
     result.save(f"straight.jpg")

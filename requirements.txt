@@ -6,6 +6,7 @@ opencv-python
 pillow
 rawpy
 scikit-learn
+scipy
 torch
 torchvision
 torchsummary

@@ -3,13 +3,15 @@
 #   Copyright (c) 2021 Homedeck, LLC.
 #
 
-from cv2 import getRotationMatrix2D, warpAffine, INTER_LINEAR
+from cv2 import getRotationMatrix2D, warpPerspective
 from lsd import line_segment_detector
-from numpy import abs, array, asarray, arctan2, pi, rad2deg, zeros_like
+from numpy import abs, array, asarray, arctan2, pi, rad2deg, vstack, zeros_like
 from PIL import Image
 from sklearn.linear_model import RANSACRegressor
 
-def align_level (image: Image.Image, max_theta: float=4., max_trials: int=2000) -> Image.Image: # INCOMPLETE # Constrain crop
+from .constrain import constrain_crop_transform
+
+def align_level (image: Image.Image, max_theta: float=4., max_trials: int=2000, constrain_crop: bool=True) -> Image.Image:
     """
     Level an image.
 
@@ -17,6 +19,7 @@ def align_level (image: Image.Image, max_theta: float=4., max_trials: int=2000) 
         image (PIL.Image): Input image.
         max_theta (float): Maximum angle that can be corrected.
         max_trials (int): Maximum trials for fitting geometry model.
+        constrain_crop (bool): Apply a constrain crop to remove borders.
 
     Returns:
         PIL.Image: Result image.
@@ -52,13 +55,15 @@ def align_level (image: Image.Image, max_theta: float=4., max_trials: int=2000) 
     # Compute rotation
     image_center = (image.width // 2, image.height // 2)
     correction_angle = ransac.estimator_.intercept_
-    M = getRotationMatrix2D(image_center, correction_angle, 1.)
+    H = getRotationMatrix2D(image_center, correction_angle, 1.)
     # Check theta
     if correction_angle > max_theta:
         return image
-    # Rotate and constrain crop # INCOMPLETE
-    result = warpAffine(image_arr, M, image.size, flags=INTER_LINEAR)
-
+    # Rotate and constrain crop
+    T = constrain_crop_transform(H, image.width, image.height)
+    H = vstack([H, [0., 0., 1.]])
+    H = T @ H if constrain_crop else H
+    result = warpPerspective(image_arr, H, image.size)
     # Return
     result = Image.fromarray(result)
     result.info["exif"] = image.info.get("exif")

@@ -9,7 +9,9 @@ from numpy import abs, array, asarray, arctan2, float32, pi, rad2deg, zeros_like
 from PIL import Image
 from sklearn.linear_model import RANSACRegressor
 
-def align_verticals (image: Image.Image, max_trials: int=2000) -> Image.Image: # INCOMPLETE # Threshold # Constrain crop
+from .constrain import constrain_crop_transform
+
+def align_verticals (image: Image.Image, max_trials: int=2000, constrain_crop: bool=True) -> Image.Image: # INCOMPLETE # Threshold
     """
     Straighten verticals in an image.
 
@@ -18,6 +20,7 @@ def align_verticals (image: Image.Image, max_trials: int=2000) -> Image.Image: #
     Parameters:
         image (PIL.Image): Input image.
         max_trials (int): Maximum trials for fitting geometry model.
+        constrain_crop (bool): Apply a constrain crop to remove borders.
 
     Returns:
         PIL.Image: Result image.
@@ -73,9 +76,10 @@ def align_verticals (image: Image.Image, max_trials: int=2000) -> Image.Image: #
     src_rect = array([ left_anchor[:2], left_anchor[2:], right_anchor[:2], right_anchor[2:] ], dtype=float32)
     dst_rect = array([ upright_left[0], upright_left[1], upright_right[0], upright_right[1] ], dtype=float32)
     H = getPerspectiveTransform(src_rect, dst_rect)
-    # Warp and constrain crop # INCOMPLETE
-    result = warpPerspective(image_arr, H, (image.width, image.height))
-
+    # Warp and constrain crop
+    T = constrain_crop_transform(H, image.width, image.height)
+    H = T @ H if constrain_crop else H
+    result = warpPerspective(image_arr, H, image.size)
     # Return
     result = Image.fromarray(result)
     result.info["exif"] = image.info.get("exif")
