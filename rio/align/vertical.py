@@ -12,7 +12,7 @@ from sklearn.linear_model import RANSACRegressor
 
 from .constrain import constrain_crop_transform
 
-def align_verticals (image: Image.Image, constrain_crop: bool=True, max_scale: float=0.2, max_trials: int=2000) -> Image.Image:
+def align_verticals (image: Image.Image, constrain_crop: bool=True, max_contraction: float=0.2, max_trials: int=2000) -> Image.Image:
     """
     Straighten verticals in an image.
 
@@ -21,7 +21,7 @@ def align_verticals (image: Image.Image, constrain_crop: bool=True, max_scale: f
     Parameters:
         image (PIL.Image): Input image.
         constrain_crop (bool): Apply a constrain crop to remove borders.
-        max_scale (float): Maximum alignment scale factor that can be corrected, in range (0., 1.].
+        max_contraction (float): Maximum contraction that can be corrected, in range (0., 1.].
         max_trials (int): Maximum trials for fitting geometry model.
 
     Returns:
@@ -80,7 +80,7 @@ def align_verticals (image: Image.Image, constrain_crop: bool=True, max_scale: f
     H = getPerspectiveTransform(src_rect, dst_rect)
     # Check area
     T = constrain_crop_transform(H, image.width, image.height)
-    if 1 - 1. / det(T) > max_scale:
+    if 1 - 1. / det(T) > max_contraction:
         return image
     # Warp and constrain crop
     H = T @ H if constrain_crop else H
