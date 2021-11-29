@@ -42,7 +42,10 @@ setup(
         "torchvision"
     ],
     url="https://github.com/hdkai/Raw-IO",
-    packages=find_packages(include=["rawio", "rawio.*"]),
+    packages=find_packages(
+        include=["rawio", "rawio.*"],
+        exclude=["test", "playground"]
+    ),
     package_data={ "rawio.raw": ["data/*.tif"] },
     classifiers=[
         "Programming Language :: Python :: 3",
