@@ -1,13 +1,13 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from PIL import Image
 from pytest import fixture, mark
 from torchvision.transforms.functional import to_tensor, to_pil_image
 
-from rio.lens import lens_grid, lens_correction
+from rawio.lens import lens_grid, lens_correction
 
 def test_lens_correction ():
     image_path = "test/media/lens/1.jpg"

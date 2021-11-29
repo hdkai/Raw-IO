@@ -1,13 +1,13 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from PIL import Image
 from pytest import fixture, mark
 from torchvision.transforms.functional import to_tensor, to_pil_image
 
-from rio.lens import tca_model, tca_grid, tca_correction
+from rawio.lens import tca_model, tca_grid, tca_correction
 
 IMAGE_PATHS = [
     "test/media/tca/1.jpg",

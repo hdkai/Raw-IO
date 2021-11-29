@@ -1,13 +1,13 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from pathlib import Path
 from PIL import Image
 from pytest import fixture, mark
 
-from rio.grouping import group_exposures, wavelet_similarity
+from rawio.grouping import group_exposures, wavelet_similarity
 
 def test_group_wavelet_ambient_a (): # fails, on brightest exposure
     exposure_paths = [

@@ -1,13 +1,13 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from PIL import Image
 from pytest import fixture, mark
 
-from rio.grouping import group_exposures, timestamp_similarity
-from rio.grouping.timestamp import exposure_timestamp
+from rawio.grouping import group_exposures, timestamp_similarity
+from rawio.grouping.timestamp import exposure_timestamp
 
 @mark.parametrize("image_path", [
     "test/media/group/1.jpg"

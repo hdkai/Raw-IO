@@ -1,6 +1,6 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from .exposures import align_exposures

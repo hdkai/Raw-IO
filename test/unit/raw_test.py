@@ -1,11 +1,11 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from pytest import fixture, mark
 
-from rio.raw import rawread
+from rawio.raw import rawread
 
 @mark.parametrize("image_path", [
     "test/media/raw/1.arw",

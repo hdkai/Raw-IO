@@ -1,12 +1,12 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from PIL import Image
 from pytest import fixture, mark
 
-from rio.align import align_verticals, align_level
+from rawio.align import align_verticals, align_level
 
 IMAGE_PATHS = [
     "test/media/level/3.jpg",

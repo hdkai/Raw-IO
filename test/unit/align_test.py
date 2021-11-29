@@ -1,10 +1,10 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from PIL import Image
-from rio.align import align_exposures
+from rawio.align import align_exposures
 
 def test_align ():
     exposure_paths = [

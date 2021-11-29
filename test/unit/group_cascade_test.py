@@ -1,6 +1,6 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from cv2 import drawMatches
@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image
 from pytest import fixture, mark
 
-from rio.grouping import group_exposures, timestamp_similarity, wavelet_similarity
+from rawio.grouping import group_exposures, timestamp_similarity, wavelet_similarity
 
 @fixture
 def similarity_fn ():

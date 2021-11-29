@@ -1,6 +1,6 @@
 # 
-#   Rio
-#   Copyright (c) 2021 Homedeck, LLC.
+#   RawIO
+#   Copyright (c) 2021 Yusuf Olokoba.
 #
 
 from numpy import allclose, array
@@ -68,7 +68,7 @@ def rawread (*image_paths: str) -> Image.Image:
     # Gamma correction # CHECK # Range [0., 1.]
     exposure_stack = 2. * exposure_stack.pow(1. / 2.2) - 1.
     # Tone curve
-    tone_curve_path = resource_filename("rio.raw", "data/raw_standard_med.tif")
+    tone_curve_path = resource_filename("rawio.raw", "data/raw_standard_med.tif")
     tone_curve = lutread(tone_curve_path)
     exposure_stack = color_sample_1d(exposure_stack, tone_curve)
     exposure_stack = (exposure_stack + 1.) / 2.
